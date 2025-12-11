@@ -3,27 +3,46 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-  <title>Paca Aquí – Pacas de Zacate en Chihuahua</title>
+  <title>Paca Aquí – Pacas en Chihuahua</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
-    body { margin:0; font-family: system-ui, -apple-system, sans-serif; background:#000; }
-    #map { height: 100vh; width: 100%; }
-    h1 { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: #4CAF50; padding: 10px 20px; border-radius: 30px; margin: 0; z-index: 1000; font-size: 22px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
-    .legend { position: absolute; bottom: 80px; left: 10px; background: rgba(255,255,255,0.95); padding: 12px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.3); z-index: 1000; font-size: 14px; backdrop-filter: blur(10px); }
-    .legend i { width: 20px; height: 20px; display: inline-block; margin-right: 8px; border-radius: 50%; border: 3px solid white; }
-    .river { position: absolute; bottom: 0; width: 100%; background: linear-gradient(transparent, rgba(0,0,0,0.9)); color: white; overflow-x: auto; white-space: nowrap; padding: 15px 0; z-index: 999; font-size: 15px; }
-    .free-item { display: inline-block; background: #27ae60; padding: 10px 18px; border-radius: 30px; margin: 0 10px; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-    .fab { position: absolute; bottom: 100px; right: 20px; background:#25D366; color:white; width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; box-shadow:0 4px 20px rgba(0,0,0,0.4); z-index:1000; }
+    body{margin:0;font-family:system-ui;background:#000;overflow:hidden}
+    #map{height:100vh;width:100%}
+    h1{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.8);color:#4CAF50;padding:10px 25px;border-radius:30px;z-index:1000;font-size:22px}
+    .fab{position:fixed;bottom:20px;right:20px;background:#25D366;color:white;width:64px;height:64px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;box-shadow:0 4px 20px rgba(0,0,0,0.5);z-index:1000}
+    .form-container{position:fixed;bottom:0;left:0;width:100%;background:white;padding:15px;box-sizing:border-box;transform:translateY(100%);transition:0.4s;z-index:2000;border-top-left-radius:20px;border-top-right-radius:20px;box-shadow:0 -5px 30px rgba(0,0,0,0.3)}
+    .form-container.open{transform:translateY(0)}
+    .close-btn{float:right;background:#e74c3c;color:white;border:none;padding:8px 12px;border-radius:50%;font-size:18px}
+    .legend{position:absolute;bottom:80px;left:10px;background:rgba(255,255,255,0.95);padding:12px;border-radius:12px;z-index:1000;font-size:14px}
+    .legend i{width:18px;height:18px;display:inline-block;margin-right:8px;border-radius:50%}
+    input,select,button{width:100%;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #ccc;font-size:16px}
+    button{background:#4CAF50;color:white;border:none;padding:14px;font-weight:bold}
   </style>
 </head>
 <body>
-  <h1>🐄 Paca Aquí</h1>
-  <a href="https://wa.me/526361234567?text=¡Quiero%20publicar%20mis%20pacas%20en%20Paca%20Aquí!" class="fab" target="_blank">
-    <i class="fab fa-whatsapp"></i>
-  </a>
-
+  <h1>Paca Aquí</h1>
   <div id="map"></div>
+
+  <a href="javascript:void(0)" onclick="document.getElementById('form').classList.toggle('open')" class="fab">+</a>
+
+  <div id="form" class="form-container">
+    <button class="close-btn" onclick="document.getElementById('form').classList.remove('open')">×</button>
+    <h2 style="margin-top:0">Publicar mis pacas</h2>
+    <input type="text" id="nombre" placeholder="Nombre del campo / productor" required>
+    <input type="tel" id="telefono" placeholder="Teléfono con WhatsApp (opcional)">
+    <select id="tipo" required>
+      <option value="">Tipo de paca</option>
+      <option value="alfalfa">Alfalfa</option>
+      <option value="avena">Avena / Trigo</option>
+      <option value="ensilaje">Ensilaje de maíz</option>
+      <option value="premium">Premium (Teff, horse hay)</option>
+    </select>
+    <input type="number" id="cantidad" placeholder="Cantidad de pacas" required>
+    <input type="number" id="precio" placeholder="Precio por paca (MXN)" required>
+    <input type="text" id="corte" placeholder="Corte (ej. Nov 2025)" value="Dic 2025">
+    <button onclick="publicar()">PUBLICAR EN EL MAPA</button>
+    <p id="status" style="text-align:center;margin-top:10px"></p>
+  </div>
 
   <div class="legend">
     <div><i style="background:#4CAF50"></i> Alfalfa</div>
@@ -32,50 +51,88 @@
     <div><i style="background:#9C27B0"></i> Premium</div>
   </div>
 
-  <div class="river" id="freeRiver">
-    <span class="free-item">GRATIS 200 pacas – Namiquipa</span>
-    <span class="free-item">GRATIS 120 pacas rastrojo – Cuauhtémoc</span>
-    <span class="free-item">GRATIS 80 pacas mojadas – Bachíniva</span>
-    <span class="free-item">GRATIS 300 pacas – Campo 105</span>
-  </div>
-
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script>
-    const map = L.map('map').setView([28.75, -106.95], 9);
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+    // ==== CONFIGURA AQUÍ TUS CLAVES DE SUPABASE ====
+    const SUPABASE_URL = "https://TU_PROYECTO.supabase.co"  // ← pega aquí
+    const SUPABASE_ANON_KEY = "eyJhbGciOi..."               // ← pega aquí
+    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
-    const pacas = [
-      {lat:28.852, lng:-106.958, tipo:"alfalfa",  cant:4800, precio:98,  corte:"Nov 2025", nombre:"Campo Menonita 87"},
-      {lat:28.701, lng:-106.912, tipo:"avena",    cant:1200, precio:78,  corte:"Oct 2025", nombre:"Ejido Cruces"},
-      {lat:28.633, lng:-107.012, tipo:"ensilaje", cant:3800, precio:115, corte:"Nov 2025", nombre:"Rancho El Porvenir"},
-      {lat:28.798, lng:-106.789, tipo:"alfalfa",  cant:2100, precio:102, corte:"Nov 2025", nombre:"Hnos. Wall"},
-      {lat:28.920, lng:-107.150, tipo:"premium",  cant:420,  precio:168, corte:"Nov 2025", nombre:"Teff Santa Rita"},
-      {lat:28.680, lng:-106.850, tipo:"alfalfa",  cant:6200, precio:94,  corte:"Nov 2025", nombre:"Campo 105 – ¡6,200 pacas!"},
-    ];
+    const map = L.map('map').setView([28.75, -106.95], 9)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map)
+    const markers = {}
 
-    pacas.forEach(p => {
-      const color = {alfalfa:"#4CAF50", avena:"#FFC107", ensilaje:"#FF5722", premium:"#9C27B0"}[p.tipo];
-      const size = p.cant > 5000 ? 60 : p.cant > 2000 ? 50 : 40;
+    async function cargarPacas() {
+      const { data } = await supabase.from('pacas').select()
+      data.forEach(p => agregarMarcador(p))
+    }
+
+    function agregarMarcador(p) {
+      if (markers[p.id]) markers[p.id].remove()
+      
+      const color = {alfalfa:"#4CAF50", avena:"#FFC107", ensilaje:"#FF5722", premium:"#9C27B0"}[p.tipo] || "#666"
+      const size = p.cantidad > 5000 ? 70 : p.cantidad > 2000 ? 55 : 45
 
       const icon = L.divIcon({
-        html: `<div style="background:${color}; width:${size}px; height:${size}px; border-radius:50%; border:4px solid white; box-shadow:0 4px 15px rgba(0,0,0,0.5); color:white; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:14px;">
-                 ${p.cant>999 ? (p.cant/1000).toFixed(1)+'k' : p.cant}
+        html: `<div style="background:${color};width:${size}px;height:${size}px;border-radius:50%;border:5px solid white;box-shadow:0 4px 15px rgba(0,0,0,0.6);color:white;display:flex;align-items:center;justify-content:center;font-weight:bold;font-size:14px">
+                 ${p.cantidad>999 ? (p.cantidad/1000).toFixed(1)+'k' : p.cantidad}
                </div>`,
         iconSize: [size, size], iconAnchor: [size/2, size/2]
-      });
+      })
 
-      L.marker([p.lat, p.lng], {icon}).addTo(map)
+      const marker = L.marker([p.lat, p.lng], {icon}).addTo(map)
         .bindPopup(`
-          <b style="font-size:18px;">${p.nombre}</b><br><br>
-          <strong style="font-size:22px; color:${color}">${p.cant.toLocaleString()} pacas</strong><br>
-          ${p.tipo.toUpperCase()} – Corte ${p.corte}<br><br>
-          <strong style="font-size:20px;">$${p.precio} MXN</strong> en campo<br><br>
-          <a href="https://wa.me/526361234567?text=Hola,%20vi%20tus%20${p.cant}%20pacas%20de%20${p.tipo}%20a%20%24${p.precio}%20en%20Paca%20Aquí" 
-             style="background:#25D366; color:white; padding:12px 20px; border-radius:8px; text-decoration:none; display:inline-block; font-weight:bold;">
-             WhatsApp al productor
-          </a>
-        `, {maxWidth: 400});
-    });
+          <b style="font-size:18px">${p.nombre}</b><br><br>
+          <strong style="font-size:22px;color:${color}">${p.cantidad} pacas</strong><br>
+          ${p.tipo.toUpperCase()} – ${p.corte}<br><br>
+          <strong style="font-size:20px">$${p.precio} MXN</strong> en campo<br><br>
+          ${p.telefono ? `<a href="https://wa.me/${p.telefono.replace(/[^\d]/g,'')}?text=Hola, vi tus ${p.cantidad} pacas de ${p.tipo} a $${p.precio}" 
+             style="background:#25D366;color:white;padding:12px;border-radius:8px;text-decoration:none;display:inline-block;font-weight:bold">
+             WhatsApp
+             </a>` : ''}
+        `)
+
+      markers[p.id] = marker
+    }
+
+    // Escuchar nuevas pacas en tiempo real
+    supabase.channel('public:pacas')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'pacas' }, payload => {
+        agregarMarcador(payload.new)
+      })
+      .subscribe()
+
+    async function publicar() {
+      if (navigator.geolocation) {
+        document.getElementById('status').innerHTML = "Obteniendo tu ubicación..."
+        navigator.geolocation.getCurrentPosition(async pos => {
+          const data = {
+            lat: pos.coords.latitude,
+            lng: pos.coords.longitude,
+            nombre: document.getElementById('nombre').value,
+            telefono: document.getElementById('telefono').value,
+            tipo: document.getElementById('tipo').value,
+            cantidad: parseInt(document.getElementById('cantidad').value),
+            precio: parseInt(document.getElementById('precio').value),
+            corte: document.getElementById('corte').value
+          }
+
+          const { error } = await supabase.from('pacas').insert(data)
+          if (error) {
+            document.getElementById('status').innerHTML = "Error: " + error.message
+          } else {
+            document.getElementById('status').innerHTML = "¡Publicado! Ya aparece en el mapa"
+            document.getElementById('form').classList.remove('open')
+            setTimeout(() => document.getElementById('status').innerHTML = "", 3000)
+          }
+        }, () => {
+          document.getElementById('status').innerHTML = "Activa el GPS para publicar"
+        })
+      }
+    }
+
+    cargarPacas()
   </script>
 </body>
 </html>
